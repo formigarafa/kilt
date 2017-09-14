@@ -9,6 +9,30 @@ defmodule Kilt.Accounts do
   alias Kilt.Accounts.{User, Credential}
 
   @doc """
+  Returns a user by email and password or {:error, :unauthorized} if no
+  matched record is found
+
+  ## Examples
+
+      iex> authenticate_by_email_password("right@email.com", "correct_pass")
+      {:ok, %User{}}
+
+      iex> authenticate_by_email_password("invalid@email.com", "or_invalid_pass")
+      {:error, :unauthorized}
+  """
+  def authenticate_by_email_password(email, _password) do
+    query =
+      from u in User,
+      inner_join: c in assoc(u, :credential),
+      where: c.email == ^email
+
+    case Repo.one(query) do
+      %User{} = user -> {:ok, user}
+      nil -> {:error, :unauthorized}
+    end
+  end
+
+  @doc """
   Returns the list of users.
 
   ## Examples
